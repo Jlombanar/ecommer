@@ -1,8 +1,8 @@
 [build]
   command = "npm install && npm run build"
-  publish = "src/pages"
+  publish = "src"
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/pages/index.html"
   status = 200
