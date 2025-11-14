@@ -1,112 +1,78 @@
 
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("search-input");
-  const categoryFilter = document.getElementById("category-filter");
-  const priceFilter = document.getElementById("price-filter");
-  const sortFilter = document.getElementById("sort-filter");
-  const productsGrid = document.getElementById("products-grid");
-
-  const products = Array.from(productsGrid.getElementsByClassName("product-card"));
-
-  // Función para actualizar los productos según filtros y búsqueda
-  function filterProducts() {
-    const searchText = searchInput.value.toLowerCase();
-    const selectedCategory = categoryFilter.value;
-    const selectedPrice = priceFilter.value;
-    const sortBy = sortFilter.value;
-
-    let filtered = products;
-
-    // --- FILTRO POR BÚSQUEDA ---
-    if (searchText.trim() !== "") {
-      filtered = filtered.filter((product) => {
-        const name = product.querySelector("h3").textContent.toLowerCase();
-        const desc = product.querySelector("p").textContent.toLowerCase();
-        return name.includes(searchText) || desc.includes(searchText);
-      });
-    }
-
-    // --- FILTRO POR CATEGORÍA ---
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (product) => product.dataset.category === selectedCategory
-      );
-    }
-
-    // --- FILTRO POR PRECIO ---
-    if (selectedPrice) {
-      filtered = filtered.filter((product) => {
-        const price = parseInt(product.dataset.price);
-        if (selectedPrice.includes("-")) {
-          const [min, max] = selectedPrice.split("-").map(Number);
-          return price >= min && price <= max;
-        } else if (selectedPrice.includes("+")) {
-          const min = parseInt(selectedPrice);
-          return price >= min;
-        }
-        return true;
-      });
-    }
-
-    // --- ORDENAMIENTO ---
-    filtered.sort((a, b) => {
-      const priceA = parseInt(a.dataset.price);
-      const priceB = parseInt(b.dataset.price);
-      const nameA = a.querySelector("h3").textContent.trim();
-      const nameB = b.querySelector("h3").textContent.trim();
-
-      switch (sortBy) {
-        case "price-asc":
-          return priceA - priceB;
-        case "price-desc":
-          return priceB - priceA;
-        case "name":
-          return nameA.localeCompare(nameB);
-        case "newest":
-          // Si tuvieras una fecha podrías usarla aquí
-          return Math.random() - 0.5; // orden aleatorio
-        default:
-          return 0;
-      }
-    });
-
-    // --- LIMPIAR Y MOSTRAR ---
-    productsGrid.innerHTML = "";
-    if (filtered.length > 0) {
-      filtered.forEach((p) => productsGrid.appendChild(p));
-    } else {
-      productsGrid.innerHTML = `
-        <div class="col-span-full text-center text-gray-500 py-12 text-lg">
-          No se encontraron productos con los criterios seleccionados 😢
-        </div>
-      `;
-    }
+// Función para cargar productos
+async function cargarProductos() {
+  try {
+    const response = await fetch('http://localhost:8081/api/productos');
+    const productos = await response.json();
+    
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = productos.map(producto => `
+      
+     <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 product-card" 
+     data-category="laptops" 
+     data-price="${producto.Precio}" 
+     data-product-id="${producto.productId}">
+  
+  <!-- Imagen del producto -->
+  <div class="bg-linear-to-br from-gray-100 to-gray-200 h-48 flex items-center justify-center relative overflow-hidden">
+    <img src="${producto.Imagen}" 
+         alt="${producto.Nombre}" 
+         class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+         loading="lazy">
+    
+    <!-- Etiqueta de descuento -->
+    <div class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+      -15%
+    </div>
+  </div>
+  
+  <!-- Contenido del producto -->
+  <div class="p-6">
+    <!-- Título -->
+    <h3 class="text-lg font-bold mb-2 text-gray-800">
+      ${producto.Nombre}
+    </h3>
+    
+    <!-- Descripción -->
+    <p class="text-sm text-gray-600 mb-4">
+      ${producto.Descripcion}
+    </p>
+    
+    <!-- Precio y calificación -->
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <span class="text-2xl font-bold text-blue-600">
+          $${(producto.Precio || 0).toLocaleString('es-CO')}
+        </span>
+      </div>
+      <div class="flex text-yellow-400">
+        ★★★★★
+      </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="flex space-x-2">
+      <button class="ver-detalles-btn bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition duration-300 flex-1 text-sm">
+        Ver Detalles
+      </button>
+      <button class="add-to-cart-btn bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300 flex-1 text-sm">
+        Comprar
+      </button>
+    </div>
+  </div>
+  
+</div>
+    `).join('');
+    console.log('Productos cargados correctamente');
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
   }
+}
 
-  // --- EVENTOS ---
-  searchInput.addEventListener("input", filterProducts);
-  categoryFilter.addEventListener("change", filterProducts);
-  priceFilter.addEventListener("change", filterProducts);
-  sortFilter.addEventListener("change", filterProducts);
+// Llamar la función cuando cargue la página
+cargarProductos();
 
-  // Inicializar
-  filterProducts();
-});
+setInterval(() => {
+  cargarProductos();
+}, 5000); // 5000 ms = 5 segundos
 
-// ==========================
-// BOTONES DE COMPRAR Y DETALLES
-// ==========================
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("add-to-cart-btn")) {
-    const name = e.target.dataset.product;
-    const price = parseInt(e.target.dataset.price);
-    const id = e.target.dataset.id;
-
-    alert(`✅ Producto agregado al carrito:\n${name} - $${price.toLocaleString()}`);
-  }
-
-  if (e.target.classList.contains("ver-detalles-btn")) {
-    const productId = e.target.dataset.productId;
-    alert(`🔍 Mostrando detalles del producto: ${productId}`);
-  }
-});
