@@ -50,7 +50,7 @@ El proyecto utiliza una arquitectura moderna basada en un cliente móvil, un ser
 ** npm run dev
 
 ## Estructura del proyecto
-
+```
   mimos-heladería/
 ├── backend/
 │   ├── src/
@@ -69,7 +69,7 @@ El proyecto utiliza una arquitectura moderna basada en un cliente móvil, un ser
     │   ├── widgets/       # Componentes visuales reutilizables
     │   └── main.dart      # Punto de entrada de la aplicación
 
-  
+  ```
 ---
 
 ## 👨‍💻 Autor
